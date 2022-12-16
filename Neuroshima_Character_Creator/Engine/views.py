@@ -2,7 +2,9 @@ from django.shortcuts import render
 from datetime import datetime, timedelta
 from django.http import HttpResponse
 from django.views import View
-from Neuroshima_Character_Creator.Engine.models import User, Characters
+from django.contrib.auth import authenticate
+from .models import User, Characters
+from .forms import RegisterForm, LoginForm
 
 # Create your views here.
 
@@ -20,21 +22,15 @@ class Welcome(View):
 class Login(View):
     def get(self, request):
         welcome = 'Proszę wprowadź login i hasło, aby uzyskać dostęp do kreatora.'
-        return render(request, 'login.html', context={'welcome': welcome})
+        form = LoginForm()
+        return render(request, 'login.html', context={'welcome': welcome, 'form': form})
 
     def post(self, request):
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        try:
-            user = User.objects.get(username=username)
-        except Exception:
-            user = None
-        try:
-            pass_word = User.objects.get(password=password)
-        except Exception:
-            pass_word = None
-        check = [user, pass_word]
-        if all(i is not None for i in check):
+        form = LoginForm(request.POST)
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+        user = authenticate(username=username, password=password)
+        if user is not None:
             response = HttpResponse('Zalogowano!')
             exp = datetime.now() + timedelta(days=1)
             response.set_cookie('logged_in', username, expires=exp)
@@ -46,7 +42,27 @@ class Login(View):
 
 
 class Register(View):
-    pass
+    def get(self,request):
+        form = RegisterForm
+        msg = 'Wprowadź poniższe dane aby zarejestrować nowe konto użytkownika'
+        return render(request, 'register.html', context={'msg': msg, 'form': form})
+
+    def post(self,request):
+        form = RegisterForm(request.POST)
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+        first_name = form.cleaned_data.get('first_name')
+        last_name = form.cleaned_data.get('last_name')
+        email = form.cleaned_data.get('email')
+        user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name, email=email)
+        if not User.objects.filter(username=username, email=email).exists():
+            user.save()
+            response = HttpResponse('Użytkownik stworzony, możesz się teraz zalogować!')
+            return response
+        else:
+            response = HttpResponse('Duplikat nazwy użytkownika bądź adresu email, sprawdź dane i spróbuj ponownie')
+            return response
+
 
 
 class UserPanel(View):
