@@ -1,13 +1,7 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
-
-
-class Users(models.Model):
-    user_login = models.CharField(max_length=20)
-    user_pwd = models.CharField(max_length=20)
-    user_name = models.CharField(max_length=64)
-    user_key = models.CharField(max_length=10)
 
 
 class Origins(models.Model):
@@ -59,21 +53,30 @@ class Tricks(models.Model):
 
 
 class TricksAdditional(models.Model):
+    """ Model for adding skill requierments. """
     skill_source_id = models.ForeignKey(Skills, on_delete=models.CASCADE)
     trick_source_id = models.ForeignKey(Tricks, on_delete=models.CASCADE)
     trick_req_skill_lvl = models.IntegerField
 
 
 class Characters(models.Model):
-    char_key = models.CharField(max_length=10)
+    char_user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     char_name = models.TextField
-    char_origin = models.ForeignKey(Origins, unique=True, on_delete=models.CASCADE)
-    char_origin_perk = models.ForeignKey(OriginPerks, unique=True, on_delete=models.CASCADE)
-    char_class = models.ForeignKey(CharClass, unique=True, on_delete=models.CASCADE)
-    char_class_perk = models.ForeignKey(CharClassPerk, unique=True, on_delete=models.CASCADE)
+    char_origin = models.ForeignKey(Origins, on_delete=models.CASCADE)
+    char_origin_perk = models.ForeignKey(OriginPerks, on_delete=models.CASCADE)
+    char_class = models.ForeignKey(CharClass, on_delete=models.CASCADE)
+    char_class_perk = models.ForeignKey(CharClassPerk, on_delete=models.CASCADE)
 
 
 class CharacterSkills(models.Model):
+    """ Model for adding skill levels. """
     character_source_id = models.ForeignKey(Characters, on_delete=models.CASCADE)
     skill_source_id = models.ForeignKey(Skills, on_delete=models.CASCADE)
     skill_lvl = models.IntegerField
+
+
+class CharacterTricks(models.Model):
+    """ Model for listing tricks. """
+    character_source_id = models.ForeignKey(Characters, on_delete=models.CASCADE)
+    trick_source_id = models.ForeignKey(Tricks, on_delete=models.CASCADE)
+

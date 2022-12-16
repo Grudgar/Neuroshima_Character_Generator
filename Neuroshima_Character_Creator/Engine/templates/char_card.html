@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    Imie postaci: {{ char.char_name }}
+    Pochodzenie: {{ char.char_origin }}
+    Cecha pochodzenia: {{ char.char_origin_perk }}
+    Profesja: {{ char.char_class }}
+    Cech profesji: {{ char.char_class_perk }}
+{% endblock %}

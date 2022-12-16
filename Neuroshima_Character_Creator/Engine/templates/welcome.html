@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{{ msg }}</h2>
+
+    {% if user == 0 %}
+        <form>
+            <button formaction="login">Zaloguj!</button>
+            <button formaction="reqister">Zarejestruj!</button>
+        </form>
+    {% else %}
+        <form>
+            <button formaction="user-panel">Przejdź do panelu użytkownika!</button>
+        </form>
+    {% endif %}
+{% endblock %}

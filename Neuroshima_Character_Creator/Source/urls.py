@@ -15,7 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from Neuroshima_Character_Creator.Engine.views import Welcome, Login, Register, UserPanel, CharCard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', Welcome.as_view(), name='welcome'),
+    path('login', Login.as_view(), name='login'),
+    path('register', Register.as_view(), name='register'),
+    path('user-panel', UserPanel.as_view(), name='user-panel'),
+    path('char-card', CharCard.as_view(), name='char-card'),
 ]

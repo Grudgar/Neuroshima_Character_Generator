@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ user.username }}, oto twoje postcie:</h2>
+<ul>
+    {% for character in characters %}
+    <li><a href="char-card?id={{ character.id }}">{{ character.char_name }}</a> </li>
+    {% endfor %}
+</ul>
+{% endblock %}
