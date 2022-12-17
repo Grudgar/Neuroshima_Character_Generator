@@ -73,7 +73,7 @@ class UserPanel(View):
         """ Listing all the Users characters. """
         user = request.COOKIES.get('logged_in')
         user_id = User.objects.filter(username=user)
-        characters = Characters.objects.filter(user_id=user_id)
+        characters = Characters.objects.filter(char_user_id_id__in=user_id)
         return render(request, 'user_panel.html', context={'characters': characters, 'user': user})
 
 
@@ -81,5 +81,5 @@ class CharCard(View):
     def get(self,request):
         """ Single Character info."""
         char_id = request.GET.get('id')
-        char = Characters.objects.filter(char_id=char_id)
+        char = Characters.objects.filter(id=char_id)
         return render(request, 'char_card.html', context={'char': char})
