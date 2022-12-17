@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 from django.http import HttpResponse
 from django.views import View
-from django.contrib.auth import authenticate
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 from .models import User, Characters
 from .forms import RegisterForm, LoginForm
 
@@ -11,8 +12,8 @@ from .forms import RegisterForm, LoginForm
 class Welcome(View):
     def get(self, request):
         """ Checking if user was logged in already from cookies. """
-        user = request.COOKIES.get('logged_in', '0')
-        if user == 0:
+        user = request.COOKIES.get('logged_in')
+        if user is None:
             msg = 'Witaj Gościu! Kliknij przycisk "Zarejestruj" bądź "Zaloguj", aby rozpocząć przygodę z naszym kreatorem!'
         else:
             msg = f'Witaj {user}! Kliknij "Przejdź dalej", aby wrócić do swojej przygody'
@@ -27,18 +28,21 @@ class Login(View):
 
     def post(self, request):
         form = LoginForm(request.POST)
-        username = form.cleaned_data.get('username')
-        password = form.cleaned_data.get('password')
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            response = HttpResponse('Zalogowano!')
-            exp = datetime.now() + timedelta(days=1)
-            response.set_cookie('logged_in', username, expires=exp)
-            return response
-        else:
-            response = HttpResponse('Błąd logowania! Albo zapomniałeś hasła, albo nie wiesz jak się nazywasz Podróżniku!')
-            response.delete_cookie('logged_in')
-            return response
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                response = HttpResponse('Zalogowano!')
+                login(request, user)
+                exp = datetime.now() + timedelta(days=1)
+                response.set_cookie('logged_in', username, expires=exp)
+                return redirect('welcome')
+            else:
+                response = HttpResponse('Błąd logowania! Albo zapomniałeś hasła, albo nie wiesz jak się nazywasz Podróżniku!')
+                response.delete_cookie('logged_in')
+                return response
+
 
 
 class Register(View):
@@ -48,20 +52,19 @@ class Register(View):
         return render(request, 'register.html', context={'msg': msg, 'form': form})
 
     def post(self,request):
-        form = RegisterForm(request.POST)
-        username = form.cleaned_data.get('username')
-        password = form.cleaned_data.get('password')
-        first_name = form.cleaned_data.get('first_name')
-        last_name = form.cleaned_data.get('last_name')
-        email = form.cleaned_data.get('email')
-        user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name, email=email)
-        if not User.objects.filter(username=username, email=email).exists():
+        form = RegisterForm(request.POST or None)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            first_name = form.cleaned_data.get('first_name')
+            last_name = form.cleaned_data.get('last_name')
+            email = form.cleaned_data.get('email')
+        try:
+            user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name, email=email)
             user.save()
-            response = HttpResponse('Użytkownik stworzony, możesz się teraz zalogować!')
-            return response
-        else:
-            response = HttpResponse('Duplikat nazwy użytkownika bądź adresu email, sprawdź dane i spróbuj ponownie')
-            return response
+        except Exception:
+            return HttpResponse('Użytkownik już istnieje!')
+
 
 
 
@@ -69,8 +72,8 @@ class UserPanel(View):
     def get(self,request):
         """ Listing all the Users characters. """
         user = request.COOKIES.get('logged_in')
-        user_id = User.objects.get(username=user)
-        characters = Characters.objects.filter(user_id=user_id.id)
+        user_id = User.objects.filter(username=user)
+        characters = Characters.objects.filter(user_id=user_id)
         return render(request, 'user_panel.html', context={'characters': characters, 'user': user})
 
 
