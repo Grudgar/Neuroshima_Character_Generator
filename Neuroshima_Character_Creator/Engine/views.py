@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.http import HttpResponse
 from django.views import View
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import AuthenticationForm
+# from django.contrib.auth.forms import AuthenticationForm
 from .models import User, Characters
 from .forms import RegisterForm, LoginForm
 
@@ -73,7 +73,7 @@ class UserPanel(View):
         """ Listing all the Users characters. """
         user = request.COOKIES.get('logged_in')
         user_id = User.objects.filter(username=user)
-        characters = Characters.objects.filter(char_user_id_id__in=user_id)
+        characters = Characters.objects.filter(char_user_id__in=user_id)
         return render(request, 'user_panel.html', context={'characters': characters, 'user': user})
 
 
